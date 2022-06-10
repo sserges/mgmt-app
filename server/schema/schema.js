@@ -4,6 +4,7 @@ const {
   GraphQLString,
   GraphQLSchema,
   GraphQLList,
+  GraphQLNonNull,
 } = require('graphql')
 
 const Project = require('../models/Project')
@@ -37,6 +38,7 @@ const ClientType = new GraphQLObjectType({
   }),
 })
 
+// Queries
 const RootQuery = new GraphQLObjectType({
   name: 'RootQueryType',
   fields: {
@@ -69,6 +71,42 @@ const RootQuery = new GraphQLObjectType({
   },
 })
 
+// Mutations
+const mutation = new GraphQLObjectType({
+  name: 'Mutation',
+  fields: {
+    // Add a client
+    addClient: {
+      type: ClientType,
+      args: {
+        name: { type: new GraphQLNonNull(GraphQLString) },
+        email: { type: new GraphQLNonNull(GraphQLString) },
+        phone: { type: new GraphQLNonNull(GraphQLString) },
+      },
+      resolve(parent, args) {
+        const client = new Client({
+          name: args.name,
+          email: args.email,
+          phone: args.phone,
+        })
+
+        return client.save()
+      },
+    },
+    // Delete a client
+    deleteClient: {
+      type: ClientType,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLID) },
+      },
+      resolve(parent, args) {
+        return Client.findByIdAndRemove(args.id)
+      },
+    },
+  },
+})
+
 module.exports = new GraphQLSchema({
   query: RootQuery,
+  mutation,
 })
